@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ПрактикаПлюс">
+  <defs>
+    <linearGradient id="pp-bg" x1="6" y1="4" x2="60" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3D9BFF"/>
+      <stop offset="0.5" stop-color="#1664FF"/>
+      <stop offset="1" stop-color="#6E3CF5"/>
+    </linearGradient>
+    <linearGradient id="pp-shine" x1="32" y1="0" x2="32" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="url(#pp-bg)"/>
+  <rect width="64" height="64" rx="18" fill="url(#pp-shine)"/>
+  <path d="M17 47V21.5h21.5V47" fill="none" stroke="#FFFFFF" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="46.5" cy="19" r="10" fill="#FFFFFF"/>
+  <path d="M46.5 13.6v10.8M41.1 19h10.8" stroke="#1664FF" stroke-width="3.4" stroke-linecap="round"/>
+</svg>

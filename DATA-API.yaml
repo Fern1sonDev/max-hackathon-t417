@@ -1,0 +1,348 @@
+# Контракт обязательных проверок API «ПрактикаПлюс» для платформы оценки.
+# Полная спецификация методов и схем — docs/openapi.yaml (OpenAPI 3.1).
+# Тестовые данные и ожидаемые значения индекса — docs/test-data.json.
+
+config_version: "2.0"
+solution:
+  name: "ПрактикаПлюс"
+  team_id: "t417"
+  bot: "https://max.ru/t417_hakaton_max_bot?startapp=app"
+base_url: "https://api.praktikaplus.max.it-integrators.ru"
+local_base_url: "http://localhost:8001"   # docker compose up --build
+content_type: "application/json"
+
+# Как получить токен для каждой роли. Токен передаётся в заголовке
+# Authorization: Bearer <token>. Время жизни — 12 часов.
+auth:
+  student:
+    description: "Студент. В MAX вход по подписанным данным запуска (init_data); для автоматической проверки — sandbox-id demo-*/dev-* (SANDBOX_LOGIN=true)."
+    request: { method: POST, path: /api/auth, body: { user_id: "demo-student-2", name: "Мария Сидорова" } }
+    token_field: token
+  student_fresh:
+    description: "Новый студент без профиля — для онбординга по ссылке группы и сброса. Любой уникальный id вида dev-<латиница/цифры>."
+    request: { method: POST, path: /api/auth, body: { user_id: "dev-checker-001", name: "Проверяющий" } }
+    token_field: token
+  hr:
+    description: "Владелец аккаунта компании (HR-директор)."
+    request: { method: POST, path: /api/login, body: { email: "hr@intertech.example", password: "demo12345" } }
+    token_field: token
+  hr_recruiter:
+    description: "Рекрутер той же компании — видит те же стажировки и отклики."
+    request: { method: POST, path: /api/login, body: { email: "recruiter@intertech.example", password: "demo12345" } }
+    token_field: token
+  curator:
+    description: "Администратор вуза (СКФУ)."
+    request: { method: POST, path: /api/login, body: { email: "curator@skfu.example", password: "demo12345" } }
+    token_field: token
+
+checks:
+  - id: health
+    name: "Сервис и БД доступны"
+    method: GET
+    path: /health
+    role: none
+    expected: { status: [200], content_type: application/json, json: object, required_fields: [ok, database, max_bot] }
+
+  - id: student-auth
+    name: "Вход студента (sandbox)"
+    method: POST
+    path: /api/auth
+    role: none
+    request: { body: { user_id: "demo-student-2", name: "Мария Сидорова" } }
+    expected: { status: [200], json: object, required_fields: [token, role, profile_complete] }
+
+  - id: student-auth-rejects-real-id
+    name: "Sandbox не позволяет войти под числовым id MAX"
+    method: POST
+    path: /api/auth
+    role: none
+    request: { body: { user_id: "123456789" } }
+    expected: { status: [401], json: object, required_fields: [detail] }
+
+  - id: org-login
+    name: "Вход сотрудника организации по email и паролю"
+    method: POST
+    path: /api/login
+    role: none
+    request: { body: { email: "hr@intertech.example", password: "demo12345" } }
+    expected: { status: [200], json: object, required_fields: [token, role] }
+
+  - id: org-login-wrong-password
+    name: "Неверный пароль"
+    method: POST
+    path: /api/login
+    role: none
+    request: { body: { email: "hr@intertech.example", password: "wrong-password" } }
+    expected: { status: [401], json: object, required_fields: [detail] }
+
+  - id: geo
+    name: "Справочник регионов и городов (строгий выбор)"
+    method: GET
+    path: /api/geo
+    role: none
+    expected: { status: [200], json: object, required_fields: [source, regions] }
+
+  - id: group-invite-public
+    name: "Данные приглашения группы по коду (без авторизации)"
+    method: GET
+    path: /api/public/groups/skfuIVT211
+    role: none
+    expected: { status: [200], json: object, required_fields: [university, group, region, city, course, specialty] }
+
+  - id: onboarding-by-group
+    name: "Регистрация студента по ссылке группы — вуз, группа, регион и город закрепляются"
+    method: PUT
+    path: /api/me
+    role: student_fresh
+    request: { body: { role: student, name: "Проверяющий Студент", phone: "+7 900 000-00-01", group_code: "skfuIVT211", accept_terms: true, accept_privacy: true } }
+    expected: { status: [200], json: object, required_fields: [user_id, university, group, region, city, group_locked, phone] }
+
+  - id: onboarding-invalid-city
+    name: "Город не из справочника отклоняется"
+    method: PUT
+    path: /api/me
+    role: student_fresh
+    request: { body: { role: student, name: "Проверяющий", region: "Ставропольский край", city: "Несуществующий город", accept_terms: true, accept_privacy: true } }
+    expected: { status: [200, 422], json: object, note: "у студента из группы место закреплено (200), у самостоятельного — 422" }
+
+  - id: me
+    name: "Профиль текущего пользователя"
+    method: GET
+    path: /api/me
+    role: student
+    expected: { status: [200], json: object, required_fields: [user_id, role, name, phone, university, group_locked, avatar_url, points, consent_complete, portfolio_url] }
+
+  - id: feed
+    name: "Лента стажировок с честным индексом"
+    method: GET
+    path: /api/vacancies
+    role: student
+    expected:
+      status: [200]
+      json: array
+      item_required_fields: [vacancy_id, title, company_name, core_skills, optional_skills, test_questions, match_score, match, my_application_status]
+      item_nested_required_fields:
+        match: [score, verified_score, potential, level, items, missing, missing_core]
+    save: { vacancy_id: "$[0].vacancy_id" }
+
+  - id: vacancy-card
+    name: "Карточка стажировки"
+    method: GET
+    path: /api/vacancies/{vacancy_id}
+    role: student
+    request: { path_params: { vacancy_id: "{feed.vacancy_id}" } }
+    expected: { status: [200], json: object, required_fields: [vacancy_id, title, match, test_questions] }
+
+  - id: vacancy-not-found
+    name: "Несуществующая стажировка"
+    method: GET
+    path: /api/vacancies/999999
+    role: student
+    expected: { status: [404], json: object, required_fields: [detail] }
+
+  - id: apply
+    name: "Отклик на стажировку (идемпотентно)"
+    method: POST
+    path: /api/applications
+    role: student_fresh
+    request: { body: { vacancy_id: "{feed.vacancy_id}" } }
+    expected: { status: [200], json: object, required_fields: [app_id, vacancy_id, status, match_score, match, test_questions, events] }
+    save: { app_id: "$.app_id" }
+
+  - id: answer
+    name: "Ответы на вопросы тестового задания"
+    method: POST
+    path: /api/applications/{app_id}/answer
+    role: student_fresh
+    request: { path_params: { app_id: "{apply.app_id}" }, body: { answers: ["Ответ на вопрос 1", "Ответ на вопрос 2"] } }
+    expected: { status: [200, 409, 422], json: object, note: "200 — ответы сохранены; 422 — число ответов не совпадает с числом вопросов; 409 — у стажировки нет задания" }
+
+  - id: my-applications
+    name: "Мои отклики со статусами и следующим шагом"
+    method: GET
+    path: /api/applications
+    role: student
+    expected: { status: [200], json: array, item_required_fields: [app_id, vacancy_title, status, match_score, events, next_step, company_contact] }
+
+  - id: hr-vacancies
+    name: "Стажировки компании со статистикой воронки"
+    method: GET
+    path: /api/vacancies/mine
+    role: hr
+    expected:
+      status: [200]
+      json: array
+      item_required_fields: [vacancy_id, title, is_active, stats]
+      item_nested_required_fields:
+        stats: [total, pending, accepted, rejected, missed, answered, new_24h, avg_match]
+    save: { vacancy_id: "$[0].vacancy_id" }
+
+  - id: hr-pipeline
+    name: "Воронка кандидатов конкретной стажировки"
+    method: GET
+    path: /api/vacancies/{vacancy_id}/applications
+    role: hr
+    request: { path_params: { vacancy_id: "{hr-vacancies.vacancy_id}" } }
+    expected: { status: [200], json: array, item_required_fields: [app_id, student_name, student_phone, test_questions, test_answers, status, match_score, match, skills_verified, is_overdue, pending_decision_until] }
+
+  - id: recruiter-sees-same-pipeline
+    name: "Рекрутер видит ту же воронку (общее рабочее пространство компании)"
+    method: GET
+    path: /api/vacancies/{vacancy_id}/applications
+    role: hr_recruiter
+    request: { path_params: { vacancy_id: "{hr-vacancies.vacancy_id}" } }
+    expected: { status: [200], json: array }
+
+  - id: hr-invite-with-next-step
+    name: "Приглашение со следующим шагом — уходит студенту через окно отмены (90 с)"
+    method: PATCH
+    path: /api/applications/{app_id}
+    role: hr
+    request:
+      path_params: { app_id: "{hr-pipeline.$[0].app_id}" }
+      body: { status: accepted, next_step: { format: online, datetime: "2 октября, 11:00", place: "https://example.org/meet", contact_name: "Елена Смирнова", contact_phone: "+7 900 200-00-01", message: "Обсудим ответ на задание" } }
+    expected: { status: [200], json: object, required_fields: [app_id, status, next_step, pending_decision_until, events] }
+
+  - id: hr-undo
+    name: "Отмена решения в окне 90 с — студент ничего не получает"
+    method: POST
+    path: /api/applications/{app_id}/undo
+    role: hr
+    request: { path_params: { app_id: "{hr-pipeline.$[0].app_id}" } }
+    expected: { status: [200], json: object, required_fields: [app_id, status] }
+
+  - id: hr-decision-invalid-status
+    name: "Статус missed нельзя выставить вручную"
+    method: PATCH
+    path: /api/applications/{app_id}
+    role: hr
+    request: { path_params: { app_id: "{hr-pipeline.$[0].app_id}" }, body: { status: missed } }
+    expected: { status: [422], json: object, required_fields: [detail] }
+
+  - id: hr-create-vacancy
+    name: "Стажировка с ключевыми/желательными навыками, несколькими вопросами и городом из справочника"
+    method: POST
+    path: /api/vacancies
+    role: hr
+    request:
+      body: { title: "Стажёр QA", description: "Тестирование веб-сервисов", test_questions: ["Опишите тест-кейс для формы входа", "Как вы оформите баг-репорт?"], region: "Ставропольский край", city: "Ставрополь", required_skills: ["Python"], optional_skills: ["Git"] }
+    expected: { status: [201], json: object, required_fields: [vacancy_id, core_skills, optional_skills, test_questions] }
+
+  - id: hr-create-vacancy-bad-city
+    name: "Город не из справочника отклоняется"
+    method: POST
+    path: /api/vacancies
+    role: hr
+    request: { body: { title: "Стажёр", region: "Ставропольский край", city: "Атлантида", required_skills: ["Python"] } }
+    expected: { status: [422], json: object, required_fields: [detail] }
+
+  - id: hr-create-vacancy-without-skills
+    name: "Стажировка без навыков отклоняется"
+    method: POST
+    path: /api/vacancies
+    role: hr
+    request: { body: { title: "Без навыков" } }
+    expected: { status: [422], json: object, required_fields: [detail] }
+
+  - id: role-boundary
+    name: "Студент не может создавать стажировки"
+    method: POST
+    path: /api/vacancies
+    role: student
+    request: { body: { title: "Попытка", required_skills: ["Linux"] } }
+    expected: { status: [403], json: object, required_fields: [detail] }
+
+  - id: no-token
+    name: "Запрос без токена"
+    method: GET
+    path: /api/applications
+    role: none
+    expected: { status: [401, 403], json: object, required_fields: [detail] }
+
+  - id: team
+    name: "Команда организации и приглашения сотрудников"
+    method: GET
+    path: /api/team
+    role: hr
+    expected: { status: [200], json: object, required_fields: [org_name, role, members, invites] }
+
+  - id: curator-groups
+    name: "Группы вуза со ссылкой и QR-приглашением"
+    method: GET
+    path: /api/groups
+    role: curator
+    expected: { status: [200], json: array, item_required_fields: [group_id, name, invite_code, invite_url, students_count, to_review] }
+    save: { group_id: "$[0].group_id" }
+
+  - id: curator-group-students
+    name: "Студенты группы с телефонами и статусами навыков"
+    method: GET
+    path: /api/groups/{group_id}/students
+    role: curator
+    request: { path_params: { group_id: "{curator-groups.group_id}" } }
+    expected:
+      status: [200]
+      json: array
+      item_required_fields: [user_id, name, phone, group_id, skills]
+      item_nested_required_fields:
+        skills: [skill_id, name, status, comment]
+
+  - id: curator-review
+    name: "Пакетная проверка навыков: 3 статуса + комментарий, одно сводное уведомление"
+    method: PUT
+    path: /api/students/{student_id}/skills
+    role: curator
+    request:
+      path_params: { student_id: "demo-student-2" }
+      body: { decisions: [ { skill_id: "{curator-group-students: skill_id навыка NetBox у demo-student-2}", status: verified, comment: "Курсовой проект" } ] }
+    expected: { status: [200], json: object, required_fields: [changed, notified, student] }
+
+  - id: university-analytics
+    name: "Аналитика вуза: работодатели региона, спрос на навыки, срез по группам"
+    method: GET
+    path: /api/analytics/university
+    role: curator
+    expected: { status: [200], json: object, required_fields: [region, students, groups, verified_skills, to_review, employers, skills_demand, by_group] }
+
+  - id: analytics-regions
+    name: "Региональная аналитика платформы"
+    method: GET
+    path: /api/analytics/regions
+    role: curator
+    expected: { status: [200], json: array, item_required_fields: [region, students, vacancies] }
+
+  - id: skills-gap
+    name: "Разрыв компетенций"
+    method: GET
+    path: /api/analytics/skills-gap
+    role: hr
+    expected: { status: [200], json: array, item_required_fields: [skill, required, verified] }
+
+  - id: skill-tests
+    name: "Тесты навыков вуза (в т.ч. совместные с работодателем)"
+    method: GET
+    path: /api/tests
+    role: curator
+    expected: { status: [200], json: array, item_required_fields: [test_id, title, skill, university, partner_name, status, questions_count] }
+
+  - id: integrations
+    name: "Коннекторы ATS / площадок / ЭИОС / 1С и статус подключения"
+    method: GET
+    path: /api/integrations
+    role: hr
+    expected: { status: [200], json: array, item_required_fields: [id, name, category, capabilities, docs, fields, connected] }
+
+  - id: portfolio-on
+    name: "Студент включает публичную визитку"
+    method: PATCH
+    path: /api/me/portfolio
+    role: student_fresh
+    request: { body: { public: true, show_contact: false } }
+    expected: { status: [200], json: object, required_fields: [portfolio_public, portfolio_url] }
+
+  - id: profile-reset
+    name: "Полный сброс профиля студента"
+    method: POST
+    path: /api/me/reset
+    role: student_fresh
+    expected: { status: [200], json: object, required_fields: [removed_skills, removed_applications, profile] }

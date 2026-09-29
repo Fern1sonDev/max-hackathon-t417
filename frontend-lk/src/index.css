@@ -1,0 +1,45 @@
+@import "@fontsource-variable/inter";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  -webkit-font-smoothing: antialiased;
+  background: #f5f7fb;
+  color: #0b1220;
+  font-feature-settings: "cv11", "ss01";
+}
+
+@layer utilities {
+  .tabular { font-variant-numeric: tabular-nums; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white shadow-lift transition hover:bg-blue-800 active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50;
+  }
+  .field {
+    @apply mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-normal text-slate-900 placeholder:text-slate-400 transition focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100;
+  }
+  .label {
+    @apply block text-sm font-semibold text-slate-700;
+  }
+  .card {
+    @apply rounded-2xl border border-slate-200/70 bg-white shadow-card;
+  }
+  .page {
+    @apply mx-auto w-full max-w-7xl p-5 sm:p-8;
+  }
+  .page-title {
+    @apply text-2xl font-bold tracking-tight text-slate-900 sm:text-[28px];
+  }
+  .page-sub {
+    @apply mt-1 text-sm text-slate-500;
+  }
+}

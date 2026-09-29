@@ -1,0 +1,6925 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ПрактикаПлюс API",
+    "description": "API сервиса ПрактикаПлюс: стажировки для студентов по навыкам, подтверждённым куратором вуза. Мини-приложение и бот работают в мессенджере MAX, кабинет вуза и работодателя — в вебе.\n\nАвторизация: `Authorization: Bearer <JWT>`. Студент получает токен в `POST /api/auth` (подписанные данные запуска MAX или sandbox-id `dev-…`), организация — в `POST /api/login`.",
+    "version": "2.0.0"
+  },
+  "paths": {
+    "/webhook": {
+      "post": {
+        "tags": [
+          "max-bot"
+        ],
+        "summary": "Приём событий бота MAX (POST /subscriptions)",
+        "description": "Always 200 for an authenticated call, even on a malformed body — MAX\nretries non-200 responses and unsubscribes after 8 hours of failures.",
+        "operationId": "receive_update_webhook_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Вход студента из мини-приложения MAX",
+        "operationId": "auth_api_auth_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Регистрация организации: компания (владелец — HR-директор) или вуз (администратор)",
+        "operationId": "register_api_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Вход сотрудника организации",
+        "operationId": "login_api_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Мой профиль",
+        "operationId": "get_me_api_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Сохранить профиль (студент задаёт роль один раз при регистрации; код группы заполняет вуз, группу, регион и город)",
+        "operationId": "update_me_api_me_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/me/reset": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Полный сброс профиля студента — для повторного прохождения сценария",
+        "operationId": "reset_me_api_me_reset_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/me/discoverable": {
+      "patch": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Студент: разрешить работодателям находить профиль",
+        "operationId": "set_student_discoverable_api_me_discoverable_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentDirectoryOptInPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/me/portfolio": {
+      "patch": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Студент: публичная визитка-портфолио по ссылке",
+        "operationId": "set_portfolio_api_me_portfolio_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortfolioPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/public/portfolio/{token}": {
+      "get": {
+        "tags": [
+          "profile",
+          "public"
+        ],
+        "summary": "Публичная визитка студента (без авторизации)",
+        "operationId": "public_portfolio_api_public_portfolio__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me/directory-opt-in": {
+      "patch": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Вуз: открыть каталог студентов работодателям",
+        "operationId": "set_directory_opt_in_api_me_directory_opt_in_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DirectoryOptInPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/me/password": {
+      "patch": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Сменить пароль сотрудника",
+        "operationId": "change_password_api_me_password_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChangeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/me/skills": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Мои навыки и решения вуза по ним",
+        "operationId": "my_skills_api_me_skills_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StudentSkillOut"
+                  },
+                  "type": "array",
+                  "title": "Response My Skills Api Me Skills Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Заявить навык (вуз проверит)",
+        "operationId": "claim_skill_api_me_skills_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillClaimIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentSkillOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/me/skills/{skill_id}": {
+      "delete": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Удалить заявленный навык",
+        "operationId": "remove_my_skill_api_me_skills__skill_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Skill Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me/progress": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Баллы, уровень и достижения студента",
+        "operationId": "my_progress_api_me_progress_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentProgressOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/skills": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Каталог навыков",
+        "description": "`scope=vacancies` — tags required by active vacancies (feed filters);\n`all` — tags in real use plus the starter set, so one student's typo in a\ncustom skill does not end up in everyone's onboarding list.",
+        "operationId": "list_skills_api_skills_get",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "all",
+                "vacancies"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Scope"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SkillOut"
+                  },
+                  "title": "Response List Skills Api Skills Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/universities": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Вузы на платформе (выбор при регистрации)",
+        "operationId": "list_universities_api_universities_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UniversityOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Universities Api Universities Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/geo": {
+      "get": {
+        "tags": [
+          "profile",
+          "public"
+        ],
+        "summary": "Справочник регионов и городов России",
+        "operationId": "get_geo_api_geo_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacancies": {
+      "get": {
+        "tags": [
+          "vacancies"
+        ],
+        "summary": "Лента активных стажировок (для студента — по индексу соответствия)",
+        "description": "`tags` — comma-separated skills (any of them); `min_score` — only vacancies with at least this index (students).",
+        "operationId": "list_vacancies_api_vacancies_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tags"
+            }
+          },
+          {
+            "name": "min_score",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Score"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "match",
+                "new"
+              ],
+              "type": "string",
+              "default": "match",
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VacancyOut"
+                  },
+                  "title": "Response List Vacancies Api Vacancies Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "vacancies"
+        ],
+        "summary": "Компания: опубликовать стажировку",
+        "operationId": "create_vacancy_api_vacancies_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacancyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/vacancies/mine": {
+      "get": {
+        "tags": [
+          "vacancies"
+        ],
+        "summary": "Компания: стажировки организации со статистикой воронки",
+        "operationId": "list_my_vacancies_api_vacancies_mine_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VacancyOut"
+                  },
+                  "type": "array",
+                  "title": "Response List My Vacancies Api Vacancies Mine Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/vacancies/{vacancy_id}": {
+      "get": {
+        "tags": [
+          "vacancies"
+        ],
+        "summary": "Карточка стажировки",
+        "operationId": "get_vacancy_api_vacancies__vacancy_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vacancy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vacancy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "vacancies"
+        ],
+        "summary": "Компания: изменить стажировку",
+        "operationId": "update_vacancy_api_vacancies__vacancy_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vacancy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vacancy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacancyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacancies/{vacancy_id}/applications": {
+      "get": {
+        "tags": [
+          "vacancies"
+        ],
+        "summary": "Компания: воронка кандидатов конкретной стажировки",
+        "operationId": "vacancy_pipeline_api_vacancies__vacancy_id__applications_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vacancy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vacancy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationOut"
+                  },
+                  "title": "Response Vacancy Pipeline Api Vacancies  Vacancy Id  Applications Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacancies/{vacancy_id}/active": {
+      "patch": {
+        "tags": [
+          "vacancies"
+        ],
+        "summary": "Компания: скрыть или опубликовать",
+        "operationId": "toggle_vacancy_active_api_vacancies__vacancy_id__active_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vacancy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vacancy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacancyActivePatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacancyOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/applications": {
+      "post": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Студент: откликнуться (идемпотентно)",
+        "operationId": "apply_api_applications_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Отклики: студент — свои, компания — на свои стажировки (фильтр vacancy_id)",
+        "operationId": "list_applications_api_applications_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vacancy_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vacancy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationOut"
+                  },
+                  "title": "Response List Applications Api Applications Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/applications/{app_id}/answer": {
+      "post": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Студент: ответы на вопросы тестового задания",
+        "operationId": "answer_application_api_applications__app_id__answer_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "App Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationAnswerIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/applications/export": {
+      "get": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Компания: выгрузка откликов в CSV (Excel)",
+        "description": "`;` delimiter and UTF-8 BOM so it opens by double-click in Excel with Russian locale.",
+        "operationId": "export_applications_csv_api_applications_export_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vacancy_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vacancy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/csv": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/applications/{app_id}": {
+      "patch": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Компания: решение по отклику. Студент увидит его через окно отмены (по умолчанию 90 с)",
+        "operationId": "patch_application_api_applications__app_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "App Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationStatusPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/applications/{app_id}/undo": {
+      "post": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Компания: отменить решение, пока окно отмены не истекло",
+        "operationId": "undo_decision_api_applications__app_id__undo_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "App Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students": {
+      "get": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Куратор: студенты вуза (фильтры: группа, поиск, требует проверки)",
+        "operationId": "list_students_api_students_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "group_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Group Id"
+            }
+          },
+          {
+            "name": "to_review",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "To Review"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudentOut"
+                  },
+                  "title": "Response List Students Api Students Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/directory": {
+      "get": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Работодатель: кандидаты и открытые профили",
+        "operationId": "student_directory_api_students_directory_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "name": "university",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "University"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudentOut"
+                  },
+                  "title": "Response Student Directory Api Students Directory Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{student_id}": {
+      "patch": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Куратор: перевести студента в группу",
+        "operationId": "edit_student_api_students__student_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Student Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentEditIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{student_id}/skills": {
+      "put": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Куратор: пакетная проверка навыков студента — одно сводное уведомление",
+        "description": "Decisions: verified (optionally with a comment such as «участие в\nхакатоне»), employer_review («на усмотрение работодателя»), rejected,\nclaimed (back to review). The student gets one summary message.",
+        "operationId": "review_skills_api_students__student_id__skills_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Student Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillReviewIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillReviewOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{student_id}/skills/{skill_id}": {
+      "patch": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Куратор: подтвердить одиночный навык без уведомления (для пакетной проверки используйте PUT …/skills)",
+        "operationId": "verify_skill_api_students__student_id__skills__skill_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Student Id"
+            }
+          },
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Skill Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillVerifyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentSkillOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/{student_id}/skills/{skill_id}/certificate-link": {
+      "get": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Куратор: ссылка на цифровой сертификат навыка",
+        "operationId": "certificate_link_api_students__student_id__skills__skill_id__certificate_link_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Student Id"
+            }
+          },
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Skill Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateLinkOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me/skills/{skill_id}/certificate-link": {
+      "get": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Студент: ссылка на сертификат своего навыка",
+        "operationId": "my_certificate_link_api_me_skills__skill_id__certificate_link_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Skill Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateLinkOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/certificates/{student_id}/{skill_id}/{token}": {
+      "get": {
+        "tags": [
+          "students",
+          "public"
+        ],
+        "summary": "Публичная проверка сертификата (без авторизации)",
+        "operationId": "get_certificate_api_certificates__student_id___skill_id___token__get",
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Student Id"
+            }
+          },
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Skill Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/regions": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Студенты и активные стажировки по регионам",
+        "operationId": "analytics_regions_api_analytics_regions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RegionStat"
+                  },
+                  "type": "array",
+                  "title": "Response Analytics Regions Api Analytics Regions Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/analytics/skills-gap": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Разрыв компетенций: спрос стажировок vs подтверждено вузами",
+        "operationId": "analytics_skills_gap_api_analytics_skills_gap_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SkillGapStat"
+                  },
+                  "type": "array",
+                  "title": "Response Analytics Skills Gap Api Analytics Skills Gap Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/analytics/unmet-demand": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Упущенный спрос: что ищут студенты и сколько находят",
+        "operationId": "analytics_unmet_demand_api_analytics_unmet_demand_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UnmetDemandStat"
+                  },
+                  "type": "array",
+                  "title": "Response Analytics Unmet Demand Api Analytics Unmet Demand Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/analytics/funnel": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Воронка откликов и скорость решения",
+        "operationId": "analytics_funnel_api_analytics_funnel_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FunnelOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/analytics/university": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Вуз: работодатели и спрос на навыки в регионе, результаты по группам",
+        "operationId": "analytics_university_api_analytics_university_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UniversityAnalyticsOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/leaderboard": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Витрина талантов: студенты по баллам",
+        "operationId": "leaderboard_api_leaderboard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LeaderboardEntry"
+                  },
+                  "type": "array",
+                  "title": "Response Leaderboard Api Leaderboard Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/companies": {
+      "get": {
+        "tags": [
+          "skill-tests"
+        ],
+        "summary": "Работодатели на платформе (выбор соавтора теста)",
+        "operationId": "list_companies_api_companies_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CompanyOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Companies Api Companies Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/tests": {
+      "get": {
+        "tags": [
+          "skill-tests"
+        ],
+        "summary": "Тесты навыков: студенту — тесты его вуза, организациям — свои и совместные",
+        "operationId": "list_tests_api_tests_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SkillTestOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Tests Api Tests Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "skill-tests"
+        ],
+        "summary": "Создать тест (куратор) или предложить тест вузу (работодатель)",
+        "operationId": "create_test_api_tests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillTestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillTestOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/tests/{test_id}": {
+      "get": {
+        "tags": [
+          "skill-tests"
+        ],
+        "summary": "Тест с вопросами (правильные ответы видят только авторы)",
+        "operationId": "get_test_api_tests__test_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "test_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Test Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillTestOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "skill-tests"
+        ],
+        "summary": "Удалить тест (куратор вуза или автор)",
+        "operationId": "delete_test_api_tests__test_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "test_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Test Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tests/{test_id}/status": {
+      "patch": {
+        "tags": [
+          "skill-tests"
+        ],
+        "summary": "Куратор: опубликовать или снять с публикации",
+        "operationId": "set_test_status_api_tests__test_id__status_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "test_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Test Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillTestStatusPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillTestOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tests/{test_id}/attempts": {
+      "post": {
+        "tags": [
+          "skill-tests"
+        ],
+        "summary": "Студент: пройти тест; при успехе навык подтверждается от имени вуза",
+        "operationId": "attempt_test_api_tests__test_id__attempts_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "test_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Test Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestAttemptIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestAttemptOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/integrations": {
+      "get": {
+        "tags": [
+          "integrations"
+        ],
+        "summary": "Доступные интеграции и статус подключения организации",
+        "operationId": "list_integrations_api_integrations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Integrations Api Integrations Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/integrations/{connector_id}": {
+      "put": {
+        "tags": [
+          "integrations"
+        ],
+        "summary": "Подключить внешнюю систему (секреты не сохраняются)",
+        "operationId": "connect_integration_api_integrations__connector_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "connector_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Connector Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationConnectIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "integrations"
+        ],
+        "summary": "Отключить внешнюю систему",
+        "operationId": "disconnect_integration_api_integrations__connector_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "connector_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Connector Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/team": {
+      "get": {
+        "tags": [
+          "team"
+        ],
+        "summary": "Сотрудники организации и активные приглашения",
+        "operationId": "get_team_api_team_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/team/invites": {
+      "post": {
+        "tags": [
+          "team"
+        ],
+        "summary": "Пригласить сотрудника (владелец)",
+        "operationId": "create_invite_api_team_invites_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamInviteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamInviteOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/team/invites/{token}": {
+      "delete": {
+        "tags": [
+          "team"
+        ],
+        "summary": "Отозвать приглашение",
+        "operationId": "revoke_invite_api_team_invites__token__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/team/members/{user_id}": {
+      "delete": {
+        "tags": [
+          "team"
+        ],
+        "summary": "Отключить сотрудника (владелец)",
+        "operationId": "remove_member_api_team_members__user_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invites/{token}": {
+      "get": {
+        "tags": [
+          "team",
+          "public"
+        ],
+        "summary": "Данные приглашения (без авторизации)",
+        "operationId": "get_invite_api_invites__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitePublicOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invites/{token}/accept": {
+      "post": {
+        "tags": [
+          "team",
+          "public"
+        ],
+        "summary": "Принять приглашение и задать пароль",
+        "operationId": "accept_invite_api_invites__token__accept_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteAcceptIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/groups": {
+      "get": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Куратор: группы вуза",
+        "operationId": "list_groups_api_groups_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Groups Api Groups Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Куратор: создать группу с QR-кодом и ссылкой-приглашением",
+        "operationId": "create_group_api_groups_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/groups/{group_id}": {
+      "get": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Куратор: карточка группы",
+        "operationId": "get_group_api_groups__group_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Куратор: изменить группу",
+        "operationId": "update_group_api_groups__group_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Куратор: удалить пустую группу",
+        "operationId": "delete_group_api_groups__group_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/groups/{group_id}/students": {
+      "get": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Куратор: студенты группы",
+        "operationId": "group_students_api_groups__group_id__students_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudentOut"
+                  },
+                  "title": "Response Group Students Api Groups  Group Id  Students Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/groups/{group_id}/rotate-invite": {
+      "post": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Куратор: перевыпустить ссылку-приглашение (старая перестанет работать)",
+        "operationId": "rotate_invite_api_groups__group_id__rotate_invite_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/public/groups/{code}": {
+      "get": {
+        "tags": [
+          "groups",
+          "public"
+        ],
+        "summary": "Данные приглашения группы для онбординга",
+        "operationId": "group_invite_api_public_groups__code__get",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupInvitePublicOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Состояние сервиса и БД",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AchievementOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "earned": {
+            "type": "boolean",
+            "title": "Earned"
+          },
+          "progress": {
+            "type": "integer",
+            "title": "Progress"
+          },
+          "goal": {
+            "type": "integer",
+            "title": "Goal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "title",
+          "description",
+          "earned",
+          "progress",
+          "goal"
+        ],
+        "title": "AchievementOut"
+      },
+      "ApplicationAnswerIn": {
+        "properties": {
+          "answer": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Answer",
+            "description": "Устаревшее: один ответ",
+            "default": ""
+          },
+          "answers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Answers"
+          }
+        },
+        "type": "object",
+        "title": "ApplicationAnswerIn"
+      },
+      "ApplicationEventOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "note",
+          "created_at"
+        ],
+        "title": "ApplicationEventOut"
+      },
+      "ApplicationOut": {
+        "properties": {
+          "app_id": {
+            "type": "integer",
+            "title": "App Id"
+          },
+          "vacancy_id": {
+            "type": "integer",
+            "title": "Vacancy Id"
+          },
+          "vacancy_title": {
+            "type": "string",
+            "title": "Vacancy Title"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name",
+            "default": ""
+          },
+          "student_id": {
+            "type": "string",
+            "title": "Student Id"
+          },
+          "student_name": {
+            "type": "string",
+            "title": "Student Name"
+          },
+          "student_university": {
+            "type": "string",
+            "title": "Student University",
+            "default": ""
+          },
+          "student_group": {
+            "type": "string",
+            "title": "Student Group",
+            "default": ""
+          },
+          "student_contact": {
+            "type": "string",
+            "title": "Student Contact",
+            "default": ""
+          },
+          "student_phone": {
+            "type": "string",
+            "title": "Student Phone",
+            "default": ""
+          },
+          "student_avatar_url": {
+            "type": "string",
+            "title": "Student Avatar Url",
+            "default": ""
+          },
+          "test_task": {
+            "type": "string",
+            "title": "Test Task",
+            "default": ""
+          },
+          "test_questions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Test Questions",
+            "default": []
+          },
+          "test_answer": {
+            "type": "string",
+            "title": "Test Answer",
+            "default": ""
+          },
+          "test_answers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Test Answers",
+            "default": []
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "match_score": {
+            "type": "number",
+            "title": "Match Score"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MatchOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skills_verified": {
+            "type": "boolean",
+            "title": "Skills Verified"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "is_overdue": {
+            "type": "boolean",
+            "title": "Is Overdue",
+            "default": false
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationEventOut"
+            },
+            "type": "array",
+            "title": "Events",
+            "default": []
+          },
+          "next_step": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextStepOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pending_decision_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Decision Until"
+          },
+          "company_contact": {
+            "type": "string",
+            "title": "Company Contact",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "app_id",
+          "vacancy_id",
+          "vacancy_title",
+          "student_id",
+          "student_name",
+          "status",
+          "match_score",
+          "skills_verified",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ApplicationOut"
+      },
+      "ApplicationStatusPatch": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Message",
+            "description": "Сообщение кандидату (для отказа)",
+            "default": ""
+          },
+          "next_step": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextStepIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ApplicationStatusPatch"
+      },
+      "ApplyIn": {
+        "properties": {
+          "vacancy_id": {
+            "type": "integer",
+            "title": "Vacancy Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vacancy_id"
+        ],
+        "title": "ApplyIn"
+      },
+      "AuthRequest": {
+        "properties": {
+          "init_data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Init Data"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Name",
+            "default": "Пользователь"
+          }
+        },
+        "type": "object",
+        "title": "AuthRequest",
+        "description": "Payload the mini app sends after reading MAX launch params (students\nonly — organisations use POST /api/register + /api/login).\n\nInside MAX, `init_data` (window.WebApp.initData, HMAC-signed by MAX) is\nthe only trusted source of identity. `user_id`/`name` are the browser\nsandbox fallback (SANDBOX_LOGIN=true, `dev-…`/`demo-…` ids only)."
+      },
+      "AuthResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "profile_complete": {
+            "type": "boolean",
+            "title": "Profile Complete",
+            "default": false
+          },
+          "start_param": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Param"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "AuthResponse"
+      },
+      "CertificateLinkOut": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "CertificateLinkOut"
+      },
+      "CertificateOut": {
+        "properties": {
+          "student_name": {
+            "type": "string",
+            "title": "Student Name"
+          },
+          "university": {
+            "type": "string",
+            "title": "University"
+          },
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "verified_by_name": {
+            "type": "string",
+            "title": "Verified By Name"
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Verified At"
+          },
+          "comment": {
+            "type": "string",
+            "title": "Comment",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_name",
+          "university",
+          "skill",
+          "verified_by_name",
+          "verified_at"
+        ],
+        "title": "CertificateOut"
+      },
+      "CompanyOut": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name"
+        ],
+        "title": "CompanyOut"
+      },
+      "DirectoryOptInPatch": {
+        "properties": {
+          "directory_opt_in": {
+            "type": "boolean",
+            "title": "Directory Opt In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "directory_opt_in"
+        ],
+        "title": "DirectoryOptInPatch"
+      },
+      "EmployerStat": {
+        "properties": {
+          "company": {
+            "type": "string",
+            "title": "Company"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "vacancies": {
+            "type": "integer",
+            "title": "Vacancies"
+          },
+          "applications_from_us": {
+            "type": "integer",
+            "title": "Applications From Us"
+          },
+          "accepted_from_us": {
+            "type": "integer",
+            "title": "Accepted From Us"
+          },
+          "top_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Top Skills"
+          }
+        },
+        "type": "object",
+        "required": [
+          "company",
+          "region",
+          "city",
+          "vacancies",
+          "applications_from_us",
+          "accepted_from_us",
+          "top_skills"
+        ],
+        "title": "EmployerStat"
+      },
+      "ErrorOut": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorOut"
+      },
+      "FunnelOut": {
+        "properties": {
+          "applications": {
+            "type": "integer",
+            "title": "Applications"
+          },
+          "answered": {
+            "type": "integer",
+            "title": "Answered"
+          },
+          "accepted": {
+            "type": "integer",
+            "title": "Accepted"
+          },
+          "rejected": {
+            "type": "integer",
+            "title": "Rejected"
+          },
+          "missed": {
+            "type": "integer",
+            "title": "Missed"
+          },
+          "avg_match": {
+            "type": "number",
+            "title": "Avg Match"
+          },
+          "median_hours_to_decision": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Hours To Decision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applications",
+          "answered",
+          "accepted",
+          "rejected",
+          "missed",
+          "avg_match"
+        ],
+        "title": "FunnelOut",
+        "description": "Aggregated funnel for the caller's scope (company: own vacancies; university: its students)."
+      },
+      "GeoOut": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "regions": {
+            "items": {
+              "$ref": "#/components/schemas/GeoRegionOut"
+            },
+            "type": "array",
+            "title": "Regions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "regions"
+        ],
+        "title": "GeoOut"
+      },
+      "GeoRegionOut": {
+        "properties": {
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "cities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "region",
+          "cities"
+        ],
+        "title": "GeoRegionOut"
+      },
+      "GroupIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "course": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Course",
+            "default": 0
+          },
+          "specialty": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Specialty",
+            "default": ""
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Region",
+            "default": ""
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "City",
+            "default": ""
+          },
+          "curator_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Curator Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "GroupIn"
+      },
+      "GroupInvitePublicOut": {
+        "properties": {
+          "university": {
+            "type": "string",
+            "title": "University"
+          },
+          "group": {
+            "type": "string",
+            "title": "Group"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "course": {
+            "type": "integer",
+            "title": "Course"
+          },
+          "specialty": {
+            "type": "string",
+            "title": "Specialty"
+          }
+        },
+        "type": "object",
+        "required": [
+          "university",
+          "group",
+          "region",
+          "city",
+          "course",
+          "specialty"
+        ],
+        "title": "GroupInvitePublicOut"
+      },
+      "GroupOut": {
+        "properties": {
+          "group_id": {
+            "type": "integer",
+            "title": "Group Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "course": {
+            "type": "integer",
+            "title": "Course"
+          },
+          "specialty": {
+            "type": "string",
+            "title": "Specialty"
+          },
+          "university": {
+            "type": "string",
+            "title": "University"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "curator_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Curator Id"
+          },
+          "curator_name": {
+            "type": "string",
+            "title": "Curator Name",
+            "default": ""
+          },
+          "invite_code": {
+            "type": "string",
+            "title": "Invite Code"
+          },
+          "invite_url": {
+            "type": "string",
+            "title": "Invite Url"
+          },
+          "students_count": {
+            "type": "integer",
+            "title": "Students Count",
+            "default": 0
+          },
+          "to_review": {
+            "type": "integer",
+            "title": "To Review",
+            "default": 0
+          },
+          "with_applications": {
+            "type": "integer",
+            "title": "With Applications",
+            "default": 0
+          },
+          "accepted": {
+            "type": "integer",
+            "title": "Accepted",
+            "default": 0
+          },
+          "passive": {
+            "type": "integer",
+            "title": "Passive",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "group_id",
+          "name",
+          "course",
+          "specialty",
+          "university",
+          "region",
+          "city",
+          "invite_code",
+          "invite_url"
+        ],
+        "title": "GroupOut"
+      },
+      "GroupStat": {
+        "properties": {
+          "group": {
+            "type": "string",
+            "title": "Group"
+          },
+          "students": {
+            "type": "integer",
+            "title": "Students"
+          },
+          "with_applications": {
+            "type": "integer",
+            "title": "With Applications"
+          },
+          "accepted": {
+            "type": "integer",
+            "title": "Accepted"
+          },
+          "verified_share": {
+            "type": "number",
+            "title": "Verified Share"
+          }
+        },
+        "type": "object",
+        "required": [
+          "group",
+          "students",
+          "with_applications",
+          "accepted",
+          "verified_share"
+        ],
+        "title": "GroupStat"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthOut": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "database": {
+            "type": "boolean",
+            "title": "Database"
+          },
+          "max_bot": {
+            "type": "string",
+            "enum": [
+              "live",
+              "mock"
+            ],
+            "title": "Max Bot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "database",
+          "max_bot"
+        ],
+        "title": "HealthOut"
+      },
+      "IntegrationConnectIn": {
+        "properties": {
+          "settings": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Settings"
+          }
+        },
+        "type": "object",
+        "title": "IntegrationConnectIn"
+      },
+      "IntegrationFieldOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "placeholder": {
+            "type": "string",
+            "title": "Placeholder"
+          },
+          "secret": {
+            "type": "boolean",
+            "title": "Secret"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "placeholder",
+          "secret",
+          "required"
+        ],
+        "title": "IntegrationFieldOut"
+      },
+      "IntegrationOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "vendor": {
+            "type": "string",
+            "title": "Vendor"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "category_label": {
+            "type": "string",
+            "title": "Category Label"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Capabilities"
+          },
+          "auth": {
+            "type": "string",
+            "title": "Auth"
+          },
+          "docs": {
+            "type": "string",
+            "title": "Docs"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/IntegrationFieldOut"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "connected": {
+            "type": "boolean",
+            "title": "Connected",
+            "default": false
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "status_label": {
+            "type": "string",
+            "title": "Status Label",
+            "default": ""
+          },
+          "settings": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Settings",
+            "default": {}
+          },
+          "connected_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connected At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "vendor",
+          "category",
+          "category_label",
+          "summary",
+          "capabilities",
+          "auth",
+          "docs",
+          "fields"
+        ],
+        "title": "IntegrationOut"
+      },
+      "InviteAcceptIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "accept_terms": {
+            "type": "boolean",
+            "title": "Accept Terms",
+            "default": false
+          },
+          "accept_privacy": {
+            "type": "boolean",
+            "title": "Accept Privacy",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "password"
+        ],
+        "title": "InviteAcceptIn"
+      },
+      "InvitePublicOut": {
+        "properties": {
+          "org_name": {
+            "type": "string",
+            "title": "Org Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "position": {
+            "type": "string",
+            "title": "Position"
+          }
+        },
+        "type": "object",
+        "required": [
+          "org_name",
+          "role",
+          "name",
+          "email",
+          "position"
+        ],
+        "title": "InvitePublicOut"
+      },
+      "LeaderboardEntry": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "title": "Student Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "university": {
+            "type": "string",
+            "title": "University"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "verified_skills_count": {
+            "type": "integer",
+            "title": "Verified Skills Count"
+          },
+          "avatar_url": {
+            "type": "string",
+            "title": "Avatar Url",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "name",
+          "university",
+          "points",
+          "verified_skills_count"
+        ],
+        "title": "LeaderboardEntry"
+      },
+      "LoginIn": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginIn"
+      },
+      "MatchItemOut": {
+        "properties": {
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "is_core": {
+            "type": "boolean",
+            "title": "Is Core"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "employer",
+              "claimed",
+              "related",
+              "missing"
+            ],
+            "title": "Status"
+          },
+          "via": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Via"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill",
+          "is_core",
+          "status"
+        ],
+        "title": "MatchItemOut"
+      },
+      "MatchOut": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "description": "Индекс по всем навыкам с учётом доверия, 0–100"
+          },
+          "verified_score": {
+            "type": "number",
+            "title": "Verified Score",
+            "description": "Та же формула только по навыкам, подтверждённым вузом"
+          },
+          "potential": {
+            "type": "number",
+            "title": "Potential",
+            "description": "Индекс, если вуз подтвердит все заявленные навыки"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "none"
+            ],
+            "title": "Level"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MatchItemOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing"
+          },
+          "missing_core": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Core"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score",
+          "verified_score",
+          "potential",
+          "level",
+          "items",
+          "missing",
+          "missing_core"
+        ],
+        "title": "MatchOut",
+        "description": "Explainable match index — see app/match_score.py for the formula."
+      },
+      "NextStepIn": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "online",
+              "office",
+              "start",
+              "call"
+            ],
+            "title": "Format",
+            "default": "online"
+          },
+          "datetime": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Datetime",
+            "default": ""
+          },
+          "place": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Place",
+            "description": "Адрес или ссылка на встречу",
+            "default": ""
+          },
+          "contact_name": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Contact Name",
+            "default": ""
+          },
+          "contact_phone": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Contact Phone",
+            "default": ""
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Message",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "NextStepIn"
+      },
+      "NextStepOut": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "online",
+              "office",
+              "start",
+              "call"
+            ],
+            "title": "Format",
+            "default": "online"
+          },
+          "datetime": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Datetime",
+            "default": ""
+          },
+          "place": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Place",
+            "description": "Адрес или ссылка на встречу",
+            "default": ""
+          },
+          "contact_name": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Contact Name",
+            "default": ""
+          },
+          "contact_phone": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Contact Phone",
+            "default": ""
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Message",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "NextStepOut"
+      },
+      "PasswordChangeIn": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Current Password"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "PasswordChangeIn"
+      },
+      "PortfolioOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "avatar_url": {
+            "type": "string",
+            "title": "Avatar Url"
+          },
+          "university": {
+            "type": "string",
+            "title": "University"
+          },
+          "group": {
+            "type": "string",
+            "title": "Group"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "contact": {
+            "type": "string",
+            "title": "Contact",
+            "default": ""
+          },
+          "verified": {
+            "items": {
+              "$ref": "#/components/schemas/StudentSkillOut"
+            },
+            "type": "array",
+            "title": "Verified"
+          },
+          "employer_review": {
+            "items": {
+              "$ref": "#/components/schemas/StudentSkillOut"
+            },
+            "type": "array",
+            "title": "Employer Review"
+          },
+          "claimed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Claimed"
+          },
+          "tests_passed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tests Passed"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "certificate_urls": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Certificate Urls"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "avatar_url",
+          "university",
+          "group",
+          "city",
+          "region",
+          "verified",
+          "employer_review",
+          "claimed",
+          "tests_passed",
+          "points",
+          "certificate_urls"
+        ],
+        "title": "PortfolioOut"
+      },
+      "PortfolioPatch": {
+        "properties": {
+          "public": {
+            "type": "boolean",
+            "title": "Public"
+          },
+          "show_contact": {
+            "type": "boolean",
+            "title": "Show Contact",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "public"
+        ],
+        "title": "PortfolioPatch"
+      },
+      "RegionStat": {
+        "properties": {
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "students": {
+            "type": "integer",
+            "title": "Students"
+          },
+          "vacancies": {
+            "type": "integer",
+            "title": "Vacancies"
+          }
+        },
+        "type": "object",
+        "required": [
+          "region",
+          "students",
+          "vacancies"
+        ],
+        "title": "RegionStat"
+      },
+      "RegisterIn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "hr",
+              "curator"
+            ],
+            "title": "Role"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name",
+            "description": "Компания: название; вуз: ФИО администратора"
+          },
+          "person_name": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Person Name",
+            "description": "Компания: ФИО владельца аккаунта",
+            "default": ""
+          },
+          "position": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Position",
+            "default": ""
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Phone",
+            "default": ""
+          },
+          "university": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "University",
+            "default": ""
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Region",
+            "default": ""
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "City",
+            "default": ""
+          },
+          "accept_terms": {
+            "type": "boolean",
+            "title": "Accept Terms",
+            "default": false
+          },
+          "accept_privacy": {
+            "type": "boolean",
+            "title": "Accept Privacy",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "name",
+          "email",
+          "password"
+        ],
+        "title": "RegisterIn",
+        "description": "Registers an organisation workspace; the registrant becomes its owner\n(HR director / university administrator) and can invite colleagues."
+      },
+      "ResetOut": {
+        "properties": {
+          "removed_skills": {
+            "type": "integer",
+            "title": "Removed Skills"
+          },
+          "removed_applications": {
+            "type": "integer",
+            "title": "Removed Applications"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/UserProfileOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "removed_skills",
+          "removed_applications",
+          "profile"
+        ],
+        "title": "ResetOut"
+      },
+      "SkillClaimIn": {
+        "properties": {
+          "skill_name": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Skill Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_name"
+        ],
+        "title": "SkillClaimIn"
+      },
+      "SkillDecisionIn": {
+        "properties": {
+          "skill_id": {
+            "type": "integer",
+            "title": "Skill Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "claimed",
+              "verified",
+              "employer_review",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Comment",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "status"
+        ],
+        "title": "SkillDecisionIn"
+      },
+      "SkillDemandStat": {
+        "properties": {
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "vacancies": {
+            "type": "integer",
+            "title": "Vacancies"
+          },
+          "our_verified": {
+            "type": "integer",
+            "title": "Our Verified"
+          },
+          "our_claimed": {
+            "type": "integer",
+            "title": "Our Claimed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill",
+          "vacancies",
+          "our_verified",
+          "our_claimed"
+        ],
+        "title": "SkillDemandStat"
+      },
+      "SkillGapStat": {
+        "properties": {
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "required": {
+            "type": "integer",
+            "title": "Required"
+          },
+          "verified": {
+            "type": "integer",
+            "title": "Verified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill",
+          "required",
+          "verified"
+        ],
+        "title": "SkillGapStat"
+      },
+      "SkillOut": {
+        "properties": {
+          "skill_id": {
+            "type": "integer",
+            "title": "Skill Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "name"
+        ],
+        "title": "SkillOut"
+      },
+      "SkillReviewIn": {
+        "properties": {
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/SkillDecisionIn"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Decisions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decisions"
+        ],
+        "title": "SkillReviewIn",
+        "description": "A curator's batch review of one student's skills — saved at once, one\nsummary notification to the student."
+      },
+      "SkillReviewOut": {
+        "properties": {
+          "changed": {
+            "type": "integer",
+            "title": "Changed"
+          },
+          "notified": {
+            "type": "boolean",
+            "title": "Notified"
+          },
+          "student": {
+            "$ref": "#/components/schemas/StudentOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "changed",
+          "notified",
+          "student"
+        ],
+        "title": "SkillReviewOut"
+      },
+      "SkillTestIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Description",
+            "default": ""
+          },
+          "skill": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Skill"
+          },
+          "pass_score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 50.0,
+            "title": "Pass Score",
+            "default": 70
+          },
+          "max_attempts": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Max Attempts",
+            "default": 3
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/TestQuestionIn"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 3,
+            "title": "Questions"
+          },
+          "university": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "University",
+            "description": "Для работодателя — вуз, которому предлагается тест",
+            "default": ""
+          },
+          "partner_company_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Company Id",
+            "description": "Для куратора — работодатель-соавтор"
+          },
+          "publish": {
+            "type": "boolean",
+            "title": "Publish",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "skill",
+          "questions"
+        ],
+        "title": "SkillTestIn"
+      },
+      "SkillTestOut": {
+        "properties": {
+          "test_id": {
+            "type": "integer",
+            "title": "Test Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "university": {
+            "type": "string",
+            "title": "University"
+          },
+          "author_name": {
+            "type": "string",
+            "title": "Author Name"
+          },
+          "author_role": {
+            "type": "string",
+            "title": "Author Role"
+          },
+          "partner_company_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Company Id"
+          },
+          "partner_name": {
+            "type": "string",
+            "title": "Partner Name",
+            "default": ""
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "pass_score": {
+            "type": "integer",
+            "title": "Pass Score"
+          },
+          "max_attempts": {
+            "type": "integer",
+            "title": "Max Attempts"
+          },
+          "questions_count": {
+            "type": "integer",
+            "title": "Questions Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "attempts_used": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempts Used"
+          },
+          "best_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Score"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          },
+          "attempts_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempts Total"
+          },
+          "pass_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pass Rate"
+          },
+          "can_manage": {
+            "type": "boolean",
+            "title": "Can Manage",
+            "default": false
+          },
+          "questions": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TestQuestionOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Questions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "test_id",
+          "title",
+          "description",
+          "skill",
+          "university",
+          "author_name",
+          "author_role",
+          "status",
+          "pass_score",
+          "max_attempts",
+          "questions_count",
+          "created_at"
+        ],
+        "title": "SkillTestOut"
+      },
+      "SkillTestStatusPatch": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "SkillTestStatusPatch"
+      },
+      "SkillVerifyIn": {
+        "properties": {
+          "is_verified": {
+            "type": "boolean",
+            "title": "Is Verified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_verified"
+        ],
+        "title": "SkillVerifyIn"
+      },
+      "StudentDirectoryOptInPatch": {
+        "properties": {
+          "student_directory_opt_in": {
+            "type": "boolean",
+            "title": "Student Directory Opt In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_directory_opt_in"
+        ],
+        "title": "StudentDirectoryOptInPatch"
+      },
+      "StudentEditIn": {
+        "properties": {
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
+          },
+          "university": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "University"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          }
+        },
+        "type": "object",
+        "title": "StudentEditIn",
+        "description": "Curator-only edit of a student's directory fields."
+      },
+      "StudentOut": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "contact_info": {
+            "type": "string",
+            "title": "Contact Info"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "default": ""
+          },
+          "university": {
+            "type": "string",
+            "title": "University"
+          },
+          "group": {
+            "type": "string",
+            "title": "Group"
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/StudentSkillOut"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "is_passive": {
+            "type": "boolean",
+            "title": "Is Passive",
+            "default": false
+          },
+          "avatar_url": {
+            "type": "string",
+            "title": "Avatar Url",
+            "default": ""
+          },
+          "applications": {
+            "type": "integer",
+            "title": "Applications",
+            "default": 0
+          },
+          "accepted": {
+            "type": "integer",
+            "title": "Accepted",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "contact_info",
+          "university",
+          "group",
+          "region",
+          "city",
+          "skills"
+        ],
+        "title": "StudentOut"
+      },
+      "StudentProgressOut": {
+        "properties": {
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "next_level_points": {
+            "type": "integer",
+            "title": "Next Level Points"
+          },
+          "achievements": {
+            "items": {
+              "$ref": "#/components/schemas/AchievementOut"
+            },
+            "type": "array",
+            "title": "Achievements"
+          }
+        },
+        "type": "object",
+        "required": [
+          "points",
+          "level",
+          "next_level_points",
+          "achievements"
+        ],
+        "title": "StudentProgressOut"
+      },
+      "StudentSkillOut": {
+        "properties": {
+          "skill_id": {
+            "type": "integer",
+            "title": "Skill Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "is_verified": {
+            "type": "boolean",
+            "title": "Is Verified"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "claimed"
+          },
+          "comment": {
+            "type": "string",
+            "title": "Comment",
+            "default": ""
+          },
+          "reviewed_by": {
+            "type": "string",
+            "title": "Reviewed By",
+            "default": ""
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_id",
+          "name",
+          "is_verified"
+        ],
+        "title": "StudentSkillOut"
+      },
+      "TeamInviteIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "position": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Position",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "title": "TeamInviteIn"
+      },
+      "TeamInviteOut": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "position": {
+            "type": "string",
+            "title": "Position"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "name",
+          "email",
+          "position",
+          "url",
+          "expires_at"
+        ],
+        "title": "TeamInviteOut"
+      },
+      "TeamMemberOut": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "position": {
+            "type": "string",
+            "title": "Position"
+          },
+          "is_owner": {
+            "type": "boolean",
+            "title": "Is Owner"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "email",
+          "position",
+          "is_owner",
+          "created_at"
+        ],
+        "title": "TeamMemberOut"
+      },
+      "TeamOut": {
+        "properties": {
+          "org_name": {
+            "type": "string",
+            "title": "Org Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/TeamMemberOut"
+            },
+            "type": "array",
+            "title": "Members"
+          },
+          "invites": {
+            "items": {
+              "$ref": "#/components/schemas/TeamInviteOut"
+            },
+            "type": "array",
+            "title": "Invites"
+          }
+        },
+        "type": "object",
+        "required": [
+          "org_name",
+          "role",
+          "members",
+          "invites"
+        ],
+        "title": "TeamOut"
+      },
+      "TestAttemptIn": {
+        "properties": {
+          "answers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Answers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "title": "TestAttemptIn"
+      },
+      "TestAttemptOut": {
+        "properties": {
+          "score": {
+            "type": "integer",
+            "title": "Score"
+          },
+          "passed": {
+            "type": "boolean",
+            "title": "Passed"
+          },
+          "correct": {
+            "items": {
+              "type": "boolean"
+            },
+            "type": "array",
+            "title": "Correct"
+          },
+          "attempts_left": {
+            "type": "integer",
+            "title": "Attempts Left"
+          },
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "skill_verified": {
+            "type": "boolean",
+            "title": "Skill Verified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score",
+          "passed",
+          "correct",
+          "attempts_left",
+          "skill",
+          "skill_verified"
+        ],
+        "title": "TestAttemptOut"
+      },
+      "TestQuestionIn": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 3,
+            "title": "Text"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "minItems": 2,
+            "title": "Options"
+          },
+          "correct_index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Correct Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "options",
+          "correct_index"
+        ],
+        "title": "TestQuestionIn"
+      },
+      "TestQuestionOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "correct_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "options"
+        ],
+        "title": "TestQuestionOut"
+      },
+      "UniversityAnalyticsOut": {
+        "properties": {
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "students": {
+            "type": "integer",
+            "title": "Students"
+          },
+          "groups": {
+            "type": "integer",
+            "title": "Groups"
+          },
+          "verified_skills": {
+            "type": "integer",
+            "title": "Verified Skills"
+          },
+          "to_review": {
+            "type": "integer",
+            "title": "To Review"
+          },
+          "applications": {
+            "type": "integer",
+            "title": "Applications"
+          },
+          "accepted": {
+            "type": "integer",
+            "title": "Accepted"
+          },
+          "employers_in_region": {
+            "type": "integer",
+            "title": "Employers In Region"
+          },
+          "vacancies_in_region": {
+            "type": "integer",
+            "title": "Vacancies In Region"
+          },
+          "employers": {
+            "items": {
+              "$ref": "#/components/schemas/EmployerStat"
+            },
+            "type": "array",
+            "title": "Employers"
+          },
+          "skills_demand": {
+            "items": {
+              "$ref": "#/components/schemas/SkillDemandStat"
+            },
+            "type": "array",
+            "title": "Skills Demand"
+          },
+          "by_group": {
+            "items": {
+              "$ref": "#/components/schemas/GroupStat"
+            },
+            "type": "array",
+            "title": "By Group"
+          }
+        },
+        "type": "object",
+        "required": [
+          "region",
+          "city",
+          "students",
+          "groups",
+          "verified_skills",
+          "to_review",
+          "applications",
+          "accepted",
+          "employers_in_region",
+          "vacancies_in_region",
+          "employers",
+          "skills_demand",
+          "by_group"
+        ],
+        "title": "UniversityAnalyticsOut"
+      },
+      "UniversityOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "students": {
+            "type": "integer",
+            "title": "Students"
+          },
+          "has_curator": {
+            "type": "boolean",
+            "title": "Has Curator"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "students",
+          "has_curator"
+        ],
+        "title": "UniversityOut"
+      },
+      "UnmetDemandStat": {
+        "properties": {
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "searches": {
+            "type": "integer",
+            "title": "Searches"
+          },
+          "avg_results": {
+            "type": "number",
+            "title": "Avg Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill",
+          "searches",
+          "avg_results"
+        ],
+        "title": "UnmetDemandStat"
+      },
+      "UserProfileIn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "hr",
+              "curator"
+            ],
+            "title": "Role"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "contact_info": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Contact Info",
+            "default": ""
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Phone",
+            "default": ""
+          },
+          "university": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "University",
+            "default": ""
+          },
+          "group": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Group",
+            "default": ""
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Region",
+            "default": ""
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "City",
+            "default": ""
+          },
+          "group_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Code",
+            "description": "Код приглашения группы — заполняет вуз, группу, регион и город"
+          },
+          "accept_terms": {
+            "type": "boolean",
+            "title": "Accept Terms",
+            "default": false
+          },
+          "accept_privacy": {
+            "type": "boolean",
+            "title": "Accept Privacy",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "name"
+        ],
+        "title": "UserProfileIn"
+      },
+      "UserProfileOut": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "contact_info": {
+            "type": "string",
+            "title": "Contact Info"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "default": ""
+          },
+          "position": {
+            "type": "string",
+            "title": "Position",
+            "default": ""
+          },
+          "person_name": {
+            "type": "string",
+            "title": "Person Name",
+            "default": ""
+          },
+          "university": {
+            "type": "string",
+            "title": "University"
+          },
+          "group": {
+            "type": "string",
+            "title": "Group"
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
+          },
+          "group_locked": {
+            "type": "boolean",
+            "title": "Group Locked",
+            "default": false
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "directory_opt_in": {
+            "type": "boolean",
+            "title": "Directory Opt In"
+          },
+          "student_directory_opt_in": {
+            "type": "boolean",
+            "title": "Student Directory Opt In",
+            "default": false
+          },
+          "avatar_url": {
+            "type": "string",
+            "title": "Avatar Url",
+            "default": ""
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points",
+            "default": 0
+          },
+          "consent_complete": {
+            "type": "boolean",
+            "title": "Consent Complete",
+            "default": false
+          },
+          "org_id": {
+            "type": "string",
+            "title": "Org Id",
+            "default": ""
+          },
+          "org_name": {
+            "type": "string",
+            "title": "Org Name",
+            "default": ""
+          },
+          "is_owner": {
+            "type": "boolean",
+            "title": "Is Owner",
+            "default": false
+          },
+          "portfolio_public": {
+            "type": "boolean",
+            "title": "Portfolio Public",
+            "default": false
+          },
+          "portfolio_url": {
+            "type": "string",
+            "title": "Portfolio Url",
+            "default": ""
+          },
+          "portfolio_show_contact": {
+            "type": "boolean",
+            "title": "Portfolio Show Contact",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "role",
+          "name",
+          "contact_info",
+          "university",
+          "group",
+          "region",
+          "city",
+          "directory_opt_in"
+        ],
+        "title": "UserProfileOut"
+      },
+      "VacancyActivePatch": {
+        "properties": {
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_active"
+        ],
+        "title": "VacancyActivePatch"
+      },
+      "VacancyIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Description",
+            "default": ""
+          },
+          "test_task": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Test Task",
+            "description": "Устаревшее поле: один вопрос; используйте test_questions",
+            "default": ""
+          },
+          "test_questions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Test Questions"
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Region",
+            "default": ""
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "City",
+            "default": ""
+          },
+          "required_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Required Skills",
+            "description": "Ключевые навыки (вес 2)"
+          },
+          "optional_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Optional Skills",
+            "description": "Желательные навыки (вес 1)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "VacancyIn"
+      },
+      "VacancyOut": {
+        "properties": {
+          "vacancy_id": {
+            "type": "integer",
+            "title": "Vacancy Id"
+          },
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "test_task": {
+            "type": "string",
+            "title": "Test Task",
+            "default": ""
+          },
+          "test_questions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Test Questions",
+            "default": []
+          },
+          "test_questions_count": {
+            "type": "integer",
+            "title": "Test Questions Count",
+            "default": 0
+          },
+          "has_test_task": {
+            "type": "boolean",
+            "title": "Has Test Task",
+            "default": false
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "required_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Skills",
+            "description": "Все требования (ключевые и желательные)"
+          },
+          "core_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Core Skills",
+            "default": []
+          },
+          "optional_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Optional Skills",
+            "default": []
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "applications_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applications Count"
+          },
+          "stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VacancyStats"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "match_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Score"
+          },
+          "missing_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Skills",
+            "default": []
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MatchOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "my_application_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "My Application Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vacancy_id",
+          "company_id",
+          "company_name",
+          "title",
+          "description",
+          "region",
+          "city",
+          "is_active",
+          "required_skills",
+          "created_at"
+        ],
+        "title": "VacancyOut"
+      },
+      "VacancyStats": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "pending": {
+            "type": "integer",
+            "title": "Pending",
+            "default": 0
+          },
+          "accepted": {
+            "type": "integer",
+            "title": "Accepted",
+            "default": 0
+          },
+          "rejected": {
+            "type": "integer",
+            "title": "Rejected",
+            "default": 0
+          },
+          "missed": {
+            "type": "integer",
+            "title": "Missed",
+            "default": 0
+          },
+          "answered": {
+            "type": "integer",
+            "title": "Answered",
+            "default": 0
+          },
+          "new_24h": {
+            "type": "integer",
+            "title": "New 24H",
+            "default": 0
+          },
+          "avg_match": {
+            "type": "number",
+            "title": "Avg Match",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "title": "VacancyStats"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Вход студентов (MAX) и организаций (email + пароль)"
+    },
+    {
+      "name": "profile",
+      "description": "Профиль, согласия, навыки, прогресс и сброс профиля"
+    },
+    {
+      "name": "vacancies",
+      "description": "Лента стажировок с индексом соответствия и управление вакансиями"
+    },
+    {
+      "name": "applications",
+      "description": "Отклики, тестовые задания, решения работодателя"
+    },
+    {
+      "name": "students",
+      "description": "Куратор: подтверждение навыков; работодатель: каталог талантов; сертификаты"
+    },
+    {
+      "name": "analytics",
+      "description": "Региональная аналитика, разрыв компетенций, воронка, витрина талантов"
+    },
+    {
+      "name": "skill-tests",
+      "description": "Тесты навыков от вуза (в том числе совместно с работодателем); успешная сдача подтверждает навык"
+    },
+    {
+      "name": "integrations",
+      "description": "Подключение ATS, сайтов вакансий и систем вуза (коннекторы описаны, обмен включается на пилоте)"
+    },
+    {
+      "name": "team",
+      "description": "Рабочее пространство организации: владелец приглашает рекрутеров и кураторов"
+    },
+    {
+      "name": "groups",
+      "description": "Академические группы вуза с QR-кодом и ссылкой-приглашением"
+    },
+    {
+      "name": "max-bot",
+      "description": "Вебхук бота MAX"
+    },
+    {
+      "name": "public",
+      "description": "Методы без авторизации"
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://api.praktikaplus.max.it-integrators.ru",
+      "description": "Стенд хакатона"
+    },
+    {
+      "url": "http://localhost:8001",
+      "description": "docker compose"
+    }
+  ]
+}

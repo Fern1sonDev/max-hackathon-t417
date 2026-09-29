@@ -1,0 +1,29 @@
+.env
+*.log
+*.db
+
+# internal notes with credentials and team working materials — never commit
+ДОСТУПЫ_И_СТАТУС.md
+Comand info/
+submission/
+
+# backend
+backend/.venv/
+backend/data/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# frontends
+**/node_modules/
+**/dist/
+**/tsconfig.tsbuildinfo
+
+# local tooling
+.claude/
+
+# superseded brand assets and organiser materials (not part of the solution)
+praktika-plus.svg
+praktika-plus-preview.png
+praktika-plus-light-preview.png
+Образовательные решения (1).pdf

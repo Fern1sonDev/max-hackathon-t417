@@ -1,0 +1,910 @@
+{
+  "description": "Тестовые (вымышленные) данные демо-стенда ПрактикаПлюс. Создаются автоматически при ENABLE_DEMO_DATA=true (backend/app/seed.py). Все идентификаторы начинаются с demo-, e-mail — в домене .example, телефоны — условные. Пароль всех демо-организаций: demo12345.",
+  "match_formula": {
+    "index": "Σ вес × зачёт / Σ вес × 100%",
+    "weight": {
+      "core": 2,
+      "optional": 1
+    },
+    "credit": {
+      "verified": 1.0,
+      "employer": 0.75,
+      "claimed": 0.5,
+      "related_verified": 0.5,
+      "related_claimed": 0.25,
+      "missing_or_rejected": 0.0
+    },
+    "verified_score": "та же формула только по подтверждённым вузом навыкам",
+    "potential": "индекс, если вуз подтвердит все заявленные навыки"
+  },
+  "organizations": [
+    {
+      "user_id": "demo-curator-1",
+      "role": "curator",
+      "name": "Анна Ковалева",
+      "position": "Руководитель центра карьеры",
+      "email": "curator@skfu.example",
+      "university": "СКФУ (Северо-Кавказский федеральный университет)",
+      "region": "Ставропольский край",
+      "city": "Ставрополь",
+      "password": "demo12345",
+      "owner": true
+    },
+    {
+      "user_id": "demo-curator-2",
+      "role": "curator",
+      "name": "Дмитрий Волков",
+      "position": "Руководитель практики",
+      "email": "curator@kubstu.example",
+      "university": "КубГТУ (Кубанский государственный технологический университет)",
+      "region": "Краснодарский край",
+      "city": "Краснодар",
+      "password": "demo12345",
+      "owner": true
+    },
+    {
+      "user_id": "demo-hr-1",
+      "role": "hr",
+      "name": "ИнтерТех Интегратор",
+      "person_name": "Елена Смирнова",
+      "position": "HR-директор",
+      "email": "hr@intertech.example",
+      "region": "Ставропольский край",
+      "city": "Ставрополь",
+      "password": "demo12345",
+      "owner": true
+    },
+    {
+      "user_id": "demo-hr-2",
+      "role": "hr",
+      "name": "ЮгТелекомSoft",
+      "person_name": "Сергей Литвинов",
+      "position": "Владелец компании",
+      "email": "hr@yugtelecomsoft.example",
+      "region": "Краснодарский край",
+      "city": "Краснодар",
+      "password": "demo12345",
+      "owner": true
+    },
+    {
+      "user_id": "demo-curator-3",
+      "role": "curator",
+      "name": "Игорь Белов",
+      "position": "Куратор практики, ИВТ-21-2",
+      "email": "curator2@skfu.example",
+      "org_owner_id": "demo-curator-1",
+      "password": "demo12345",
+      "owner": false
+    },
+    {
+      "user_id": "demo-hr-3",
+      "role": "hr",
+      "name": "Ольга Руденко",
+      "position": "Рекрутер",
+      "email": "recruiter@intertech.example",
+      "org_owner_id": "demo-hr-1",
+      "password": "demo12345",
+      "owner": false
+    }
+  ],
+  "groups": [
+    {
+      "invite_code": "skfuIVT211",
+      "name": "ИВТ-21-1",
+      "university": "СКФУ (Северо-Кавказский федеральный университет)",
+      "course": 3,
+      "specialty": "Информатика и вычислительная техника",
+      "region": "Ставропольский край",
+      "city": "Ставрополь",
+      "curator_id": "demo-curator-1",
+      "invite_url": "https://max.ru/t417_hakaton_max_bot?startapp=g_skfuIVT211"
+    },
+    {
+      "invite_code": "skfuIVT212",
+      "name": "ИВТ-21-2",
+      "university": "СКФУ (Северо-Кавказский федеральный университет)",
+      "course": 3,
+      "specialty": "Информатика и вычислительная техника",
+      "region": "Ставропольский край",
+      "city": "Невинномысск",
+      "curator_id": "demo-curator-3",
+      "invite_url": "https://max.ru/t417_hakaton_max_bot?startapp=g_skfuIVT212"
+    },
+    {
+      "invite_code": "kubPI22100",
+      "name": "ПИ-22-1",
+      "university": "КубГТУ (Кубанский государственный технологический университет)",
+      "course": 2,
+      "specialty": "Прикладная информатика",
+      "region": "Краснодарский край",
+      "city": "Краснодар",
+      "curator_id": "demo-curator-2",
+      "invite_url": "https://max.ru/t417_hakaton_max_bot?startapp=g_kubPI22100"
+    },
+    {
+      "invite_code": "kubIVT2230",
+      "name": "ИВТ-22-3",
+      "university": "КубГТУ (Кубанский государственный технологический университет)",
+      "course": 2,
+      "specialty": "Информатика и вычислительная техника",
+      "region": "Ростовская область",
+      "city": "Ростов-на-Дону",
+      "curator_id": "demo-curator-2",
+      "invite_url": "https://max.ru/t417_hakaton_max_bot?startapp=g_kubIVT2230"
+    }
+  ],
+  "students": [
+    {
+      "user_id": "demo-student-1",
+      "name": "Иван Петров",
+      "contact_info": "@ivan_petrov",
+      "phone": "+7 900 300-00-01",
+      "university": "СКФУ (Северо-Кавказский федеральный университет)",
+      "group": "ИВТ-21-1",
+      "region": "Ставропольский край",
+      "city": "Ставрополь",
+      "skills": [
+        {
+          "name": "Linux",
+          "status": "verified",
+          "comment": "Лабораторные по администрированию — «отлично»"
+        },
+        {
+          "name": "Защищённые сетевые соединения",
+          "status": "verified",
+          "comment": "Курсовой проект: VPN для филиала"
+        },
+        {
+          "name": "NetBox",
+          "status": "verified"
+        },
+        {
+          "name": "Zabbix",
+          "status": "verified",
+          "comment": "Учебный стенд кафедры"
+        },
+        {
+          "name": "Proxmox",
+          "status": "verified"
+        },
+        {
+          "name": "Python",
+          "status": "claimed"
+        }
+      ]
+    },
+    {
+      "user_id": "demo-student-2",
+      "name": "Мария Сидорова",
+      "contact_info": "@masha_s",
+      "phone": "+7 900 300-00-02",
+      "university": "СКФУ (Северо-Кавказский федеральный университет)",
+      "group": "ИВТ-21-1",
+      "region": "Ставропольский край",
+      "city": "Ставрополь",
+      "skills": [
+        {
+          "name": "Linux",
+          "status": "verified"
+        },
+        {
+          "name": "Защищённые сетевые соединения",
+          "status": "verified",
+          "comment": "Участие в хакатоне кафедры"
+        },
+        {
+          "name": "Zabbix",
+          "status": "verified"
+        },
+        {
+          "name": "NetBox",
+          "status": "claimed"
+        },
+        {
+          "name": "Proxmox",
+          "status": "claimed"
+        }
+      ]
+    },
+    {
+      "user_id": "demo-student-3",
+      "name": "Пётр Кузнецов",
+      "contact_info": "@petr_k",
+      "phone": "+7 900 300-00-03",
+      "university": "СКФУ (Северо-Кавказский федеральный университет)",
+      "group": "ИВТ-21-2",
+      "region": "Ставропольский край",
+      "city": "Невинномысск",
+      "skills": [
+        {
+          "name": "Linux",
+          "status": "verified"
+        },
+        {
+          "name": "Zabbix",
+          "status": "claimed"
+        },
+        {
+          "name": "Python",
+          "status": "employer_review",
+          "comment": "Пишет скрипты в студклубе, в учебном плане курса нет"
+        },
+        {
+          "name": "FreeBSD",
+          "status": "rejected",
+          "comment": "Не изучалось на курсе — подтвердить нечем"
+        }
+      ]
+    },
+    {
+      "user_id": "demo-student-4",
+      "name": "Ольга Быкова",
+      "contact_info": "@olga_bykova",
+      "phone": "+7 900 300-00-04",
+      "university": "КубГТУ (Кубанский государственный технологический университет)",
+      "group": "ПИ-22-1",
+      "region": "Краснодарский край",
+      "city": "Краснодар",
+      "skills": [
+        {
+          "name": "SQL",
+          "status": "verified"
+        },
+        {
+          "name": "Docker",
+          "status": "claimed"
+        },
+        {
+          "name": "React",
+          "status": "claimed"
+        },
+        {
+          "name": "TypeScript",
+          "status": "verified",
+          "comment": "Командный проект на хакатоне кафедры"
+        }
+      ]
+    },
+    {
+      "user_id": "demo-student-5",
+      "name": "Артём Соколов",
+      "contact_info": "@artem_sokolov",
+      "phone": "+7 900 300-00-05",
+      "university": "КубГТУ (Кубанский государственный технологический университет)",
+      "group": "ПИ-22-1",
+      "region": "Краснодарский край",
+      "city": "Краснодар",
+      "skills": [
+        {
+          "name": "SQL",
+          "status": "verified"
+        },
+        {
+          "name": "Python",
+          "status": "verified",
+          "comment": "Курсовая по анализу данных"
+        },
+        {
+          "name": "Docker",
+          "status": "employer_review",
+          "comment": "Pet-проекты, академически не проверялось"
+        },
+        {
+          "name": "Git",
+          "status": "verified"
+        }
+      ]
+    },
+    {
+      "user_id": "demo-student-6",
+      "name": "Ксения Морозова",
+      "contact_info": "@ksenia_morozova",
+      "phone": "+7 900 300-00-06",
+      "university": "КубГТУ (Кубанский государственный технологический университет)",
+      "group": "ИВТ-22-3",
+      "region": "Ростовская область",
+      "city": "Ростов-на-Дону",
+      "skills": [
+        {
+          "name": "Docker",
+          "status": "claimed"
+        },
+        {
+          "name": "TypeScript",
+          "status": "claimed"
+        },
+        {
+          "name": "Linux",
+          "status": "verified"
+        },
+        {
+          "name": "Cisco",
+          "status": "verified",
+          "comment": "Сертификат сетевой академии вуза"
+        }
+      ]
+    }
+  ],
+  "vacancies": [
+    {
+      "title": "Стажёр по сетевой инфраструктуре",
+      "company_id": "demo-hr-1",
+      "region": "Ставропольский край",
+      "city": "Ставрополь",
+      "core_skills": [
+        "Linux",
+        "Защищённые сетевые соединения",
+        "NetBox",
+        "Zabbix",
+        "Proxmox"
+      ],
+      "optional_skills": [],
+      "test_questions": [
+        "Пользователь сообщает, что защищённое соединение установлено, но внутренний ресурс недоступен. Какие три проверки вы выполните в первую очередь?",
+        "Как вы задокументируете новую площадку в NetBox, чтобы коллега через год быстро в ней разобрался?"
+      ]
+    },
+    {
+      "title": "Стажер-администратор",
+      "company_id": "demo-hr-1",
+      "region": "Ставропольский край",
+      "city": "Невинномысск",
+      "core_skills": [
+        "Linux",
+        "Zabbix",
+        "Proxmox"
+      ],
+      "optional_skills": [],
+      "test_questions": [
+        "Какие метрики вы добавили бы в мониторинг Linux-сервера?",
+        "Как настроить уведомление о нехватке места на диске, чтобы оно не будило дежурного из-за временных всплесков?"
+      ]
+    },
+    {
+      "title": "Frontend-стажёр",
+      "company_id": "demo-hr-2",
+      "region": "Краснодарский край",
+      "city": "Краснодар",
+      "core_skills": [
+        "React",
+        "TypeScript"
+      ],
+      "optional_skills": [
+        "Docker"
+      ],
+      "test_questions": [
+        "Как в React вы покажете состояние загрузки, пустой список и ошибку при запросе к API?",
+        "Как типизировать ответ API в TypeScript, если сервер может вернуть поле null?"
+      ]
+    },
+    {
+      "title": "DevOps-стажёр",
+      "company_id": "demo-hr-2",
+      "region": "Ростовская область",
+      "city": "Ростов-на-Дону",
+      "core_skills": [
+        "Docker",
+        "SQL",
+        "Linux"
+      ],
+      "optional_skills": [],
+      "test_questions": [
+        "Как вы уменьшите размер Docker-образа Python-сервиса и безопасно передадите ему секреты для подключения к БД?"
+      ]
+    },
+    {
+      "title": "Практикант в отдел телекоммуникаций",
+      "company_id": "demo-hr-2",
+      "region": "Краснодарский край",
+      "city": "Краснодар",
+      "core_skills": [
+        "Cisco",
+        "VLAN / Коммутация"
+      ],
+      "optional_skills": [
+        "Eltex",
+        "Linux"
+      ],
+      "test_questions": [
+        "На коммутаторе нужно разделить бухгалтерию и гостевой Wi-Fi. Как вы это сделаете?",
+        "Как проверите, что сегменты действительно изолированы?"
+      ]
+    },
+    {
+      "title": "Стажёр-аналитик данных",
+      "company_id": "demo-hr-1",
+      "region": "Ставропольский край",
+      "city": "Ставрополь",
+      "core_skills": [
+        "Python",
+        "SQL"
+      ],
+      "optional_skills": [
+        "PostgreSQL",
+        "Git"
+      ],
+      "test_questions": [
+        "Есть таблица обращений (дата, район, тип проблемы). Каким SQL-запросом вы найдёте три района с наибольшим ростом обращений за месяц?"
+      ]
+    },
+    {
+      "title": "Стажёр по автоматизации сетей",
+      "company_id": "demo-hr-1",
+      "region": "Ставропольский край",
+      "city": "Ставрополь",
+      "core_skills": [
+        "Python",
+        "Linux"
+      ],
+      "optional_skills": [
+        "NetBox",
+        "Git"
+      ],
+      "test_questions": [
+        "Как бы вы автоматически собирали конфигурации 50 коммутаторов раз в сутки и где хранили бы историю изменений?"
+      ]
+    }
+  ],
+  "applications": [
+    {
+      "student_id": "demo-student-1",
+      "vacancy": "Стажёр по сетевой инфраструктуре",
+      "status": "pending",
+      "answers": 2
+    },
+    {
+      "student_id": "demo-student-2",
+      "vacancy": "Стажёр по сетевой инфраструктуре",
+      "status": "pending",
+      "answers": 0
+    },
+    {
+      "student_id": "demo-student-3",
+      "vacancy": "Стажер-администратор",
+      "status": "pending",
+      "answers": 0
+    },
+    {
+      "student_id": "demo-student-4",
+      "vacancy": "Frontend-стажёр",
+      "status": "pending",
+      "answers": 2
+    },
+    {
+      "student_id": "demo-student-6",
+      "vacancy": "DevOps-стажёр",
+      "status": "pending",
+      "answers": 0
+    },
+    {
+      "student_id": "demo-student-5",
+      "vacancy": "Стажёр-аналитик данных",
+      "status": "accepted",
+      "answers": 1
+    },
+    {
+      "student_id": "demo-student-2",
+      "vacancy": "Стажер-администратор",
+      "status": "missed",
+      "answers": 0
+    },
+    {
+      "student_id": "demo-student-1",
+      "vacancy": "Стажёр по автоматизации сетей",
+      "status": "rejected",
+      "answers": 1
+    }
+  ],
+  "skill_tests": [
+    {
+      "title": "NetBox: документирование сети",
+      "skill": "NetBox",
+      "university": "СКФУ (Северо-Кавказский федеральный университет)",
+      "author_id": "demo-curator-1",
+      "partner_company_id": "demo-hr-1",
+      "status": "published",
+      "pass_score": 80
+    },
+    {
+      "title": "Proxmox VE: основы виртуализации",
+      "skill": "Proxmox",
+      "university": "СКФУ (Северо-Кавказский федеральный университет)",
+      "author_id": "demo-curator-1",
+      "partner_company_id": "demo-hr-1",
+      "status": "published",
+      "pass_score": 75
+    },
+    {
+      "title": "React: состояния интерфейса",
+      "skill": "React",
+      "university": "КубГТУ (Кубанский государственный технологический университет)",
+      "author_id": "demo-hr-2",
+      "partner_company_id": "demo-hr-2",
+      "status": "pending",
+      "pass_score": 70
+    }
+  ],
+  "expected_match_index": [
+    {
+      "student_id": "demo-student-1",
+      "vacancy": "Стажер-администратор",
+      "score": 100.0,
+      "verified_score": 100.0,
+      "potential": 100.0,
+      "statuses": {
+        "Linux": "verified",
+        "Proxmox": "verified",
+        "Zabbix": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-1",
+      "vacancy": "Стажёр по сетевой инфраструктуре",
+      "score": 100.0,
+      "verified_score": 100.0,
+      "potential": 100.0,
+      "statuses": {
+        "Linux": "verified",
+        "NetBox": "verified",
+        "Proxmox": "verified",
+        "Zabbix": "verified",
+        "Защищённые сетевые соединения": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-1",
+      "vacancy": "Стажёр по автоматизации сетей",
+      "score": 66.7,
+      "verified_score": 50.0,
+      "potential": 83.3,
+      "statuses": {
+        "Linux": "verified",
+        "Python": "claimed",
+        "Git": "missing",
+        "NetBox": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-1",
+      "vacancy": "Практикант в отдел телекоммуникаций",
+      "score": 58.3,
+      "verified_score": 58.3,
+      "potential": 58.3,
+      "statuses": {
+        "Cisco": "related",
+        "VLAN / Коммутация": "related",
+        "Eltex": "related",
+        "Linux": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-1",
+      "vacancy": "DevOps-стажёр",
+      "score": 33.3,
+      "verified_score": 33.3,
+      "potential": 33.3,
+      "statuses": {
+        "Docker": "missing",
+        "Linux": "verified",
+        "SQL": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-1",
+      "vacancy": "Стажёр-аналитик данных",
+      "score": 16.7,
+      "verified_score": 0.0,
+      "potential": 33.3,
+      "statuses": {
+        "Python": "claimed",
+        "SQL": "missing",
+        "Git": "missing",
+        "PostgreSQL": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-2",
+      "vacancy": "Стажер-администратор",
+      "score": 83.3,
+      "verified_score": 66.7,
+      "potential": 100.0,
+      "statuses": {
+        "Linux": "verified",
+        "Proxmox": "claimed",
+        "Zabbix": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-2",
+      "vacancy": "Стажёр по сетевой инфраструктуре",
+      "score": 80.0,
+      "verified_score": 60.0,
+      "potential": 100.0,
+      "statuses": {
+        "Linux": "verified",
+        "NetBox": "claimed",
+        "Proxmox": "claimed",
+        "Zabbix": "verified",
+        "Защищённые сетевые соединения": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-2",
+      "vacancy": "Практикант в отдел телекоммуникаций",
+      "score": 58.3,
+      "verified_score": 58.3,
+      "potential": 58.3,
+      "statuses": {
+        "Cisco": "related",
+        "VLAN / Коммутация": "related",
+        "Eltex": "related",
+        "Linux": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-2",
+      "vacancy": "Стажёр по автоматизации сетей",
+      "score": 41.7,
+      "verified_score": 33.3,
+      "potential": 50.0,
+      "statuses": {
+        "Linux": "verified",
+        "Python": "missing",
+        "Git": "missing",
+        "NetBox": "claimed"
+      }
+    },
+    {
+      "student_id": "demo-student-2",
+      "vacancy": "DevOps-стажёр",
+      "score": 33.3,
+      "verified_score": 33.3,
+      "potential": 33.3,
+      "statuses": {
+        "Docker": "missing",
+        "Linux": "verified",
+        "SQL": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-3",
+      "vacancy": "Стажёр по автоматизации сетей",
+      "score": 58.3,
+      "verified_score": 33.3,
+      "potential": 66.7,
+      "statuses": {
+        "Linux": "verified",
+        "Python": "employer",
+        "Git": "missing",
+        "NetBox": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-3",
+      "vacancy": "Стажер-администратор",
+      "score": 50.0,
+      "verified_score": 33.3,
+      "potential": 66.7,
+      "statuses": {
+        "Linux": "verified",
+        "Proxmox": "missing",
+        "Zabbix": "claimed"
+      }
+    },
+    {
+      "student_id": "demo-student-3",
+      "vacancy": "DevOps-стажёр",
+      "score": 33.3,
+      "verified_score": 33.3,
+      "potential": 33.3,
+      "statuses": {
+        "Docker": "missing",
+        "Linux": "verified",
+        "SQL": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-3",
+      "vacancy": "Стажёр по сетевой инфраструктуре",
+      "score": 30.0,
+      "verified_score": 20.0,
+      "potential": 40.0,
+      "statuses": {
+        "Linux": "verified",
+        "NetBox": "missing",
+        "Proxmox": "missing",
+        "Zabbix": "claimed",
+        "Защищённые сетевые соединения": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-3",
+      "vacancy": "Стажёр-аналитик данных",
+      "score": 25.0,
+      "verified_score": 0.0,
+      "potential": 33.3,
+      "statuses": {
+        "Python": "employer",
+        "SQL": "missing",
+        "Git": "missing",
+        "PostgreSQL": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-3",
+      "vacancy": "Практикант в отдел телекоммуникаций",
+      "score": 16.7,
+      "verified_score": 16.7,
+      "potential": 16.7,
+      "statuses": {
+        "Cisco": "missing",
+        "VLAN / Коммутация": "missing",
+        "Eltex": "missing",
+        "Linux": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-4",
+      "vacancy": "Frontend-стажёр",
+      "score": 70.0,
+      "verified_score": 40.0,
+      "potential": 100.0,
+      "statuses": {
+        "React": "claimed",
+        "TypeScript": "verified",
+        "Docker": "claimed"
+      }
+    },
+    {
+      "student_id": "demo-student-4",
+      "vacancy": "DevOps-стажёр",
+      "score": 50.0,
+      "verified_score": 33.3,
+      "potential": 66.7,
+      "statuses": {
+        "Docker": "claimed",
+        "Linux": "missing",
+        "SQL": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-4",
+      "vacancy": "Стажёр-аналитик данных",
+      "score": 41.7,
+      "verified_score": 41.7,
+      "potential": 41.7,
+      "statuses": {
+        "Python": "missing",
+        "SQL": "verified",
+        "Git": "missing",
+        "PostgreSQL": "related"
+      }
+    },
+    {
+      "student_id": "demo-student-5",
+      "vacancy": "Стажёр-аналитик данных",
+      "score": 91.7,
+      "verified_score": 91.7,
+      "potential": 91.7,
+      "statuses": {
+        "Python": "verified",
+        "SQL": "verified",
+        "Git": "verified",
+        "PostgreSQL": "related"
+      }
+    },
+    {
+      "student_id": "demo-student-5",
+      "vacancy": "DevOps-стажёр",
+      "score": 58.3,
+      "verified_score": 33.3,
+      "potential": 66.7,
+      "statuses": {
+        "Docker": "employer",
+        "Linux": "missing",
+        "SQL": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-5",
+      "vacancy": "Стажёр по автоматизации сетей",
+      "score": 50.0,
+      "verified_score": 50.0,
+      "potential": 50.0,
+      "statuses": {
+        "Linux": "missing",
+        "Python": "verified",
+        "Git": "verified",
+        "NetBox": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-5",
+      "vacancy": "Frontend-стажёр",
+      "score": 15.0,
+      "verified_score": 0.0,
+      "potential": 20.0,
+      "statuses": {
+        "React": "missing",
+        "TypeScript": "missing",
+        "Docker": "employer"
+      }
+    },
+    {
+      "student_id": "demo-student-6",
+      "vacancy": "Практикант в отдел телекоммуникаций",
+      "score": 75.0,
+      "verified_score": 75.0,
+      "potential": 75.0,
+      "statuses": {
+        "Cisco": "verified",
+        "VLAN / Коммутация": "related",
+        "Eltex": "related",
+        "Linux": "verified"
+      }
+    },
+    {
+      "student_id": "demo-student-6",
+      "vacancy": "DevOps-стажёр",
+      "score": 50.0,
+      "verified_score": 33.3,
+      "potential": 66.7,
+      "statuses": {
+        "Docker": "claimed",
+        "Linux": "verified",
+        "SQL": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-6",
+      "vacancy": "Стажёр по автоматизации сетей",
+      "score": 33.3,
+      "verified_score": 33.3,
+      "potential": 33.3,
+      "statuses": {
+        "Linux": "verified",
+        "Python": "missing",
+        "Git": "missing",
+        "NetBox": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-6",
+      "vacancy": "Стажер-администратор",
+      "score": 33.3,
+      "verified_score": 33.3,
+      "potential": 33.3,
+      "statuses": {
+        "Linux": "verified",
+        "Proxmox": "missing",
+        "Zabbix": "missing"
+      }
+    },
+    {
+      "student_id": "demo-student-6",
+      "vacancy": "Frontend-стажёр",
+      "score": 30.0,
+      "verified_score": 0.0,
+      "potential": 60.0,
+      "statuses": {
+        "React": "missing",
+        "TypeScript": "claimed",
+        "Docker": "claimed"
+      }
+    },
+    {
+      "student_id": "demo-student-6",
+      "vacancy": "Стажёр по сетевой инфраструктуре",
+      "score": 30.0,
+      "verified_score": 30.0,
+      "potential": 30.0,
+      "statuses": {
+        "Linux": "verified",
+        "NetBox": "missing",
+        "Proxmox": "missing",
+        "Zabbix": "missing",
+        "Защищённые сетевые соединения": "related"
+      }
+    }
+  ]
+}
